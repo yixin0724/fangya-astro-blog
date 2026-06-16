@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from "astro:content";
+import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+import { filterPublishedPosts, getPostSlug, sortPostsByDate } from "../../lib/blog";
+
+export async function getStaticPaths() {
+  const posts = sortPostsByDate(filterPublishedPosts(await getCollection("blog")));
+
+  return posts.map((post, index) => ({
+    params: { slug: getPostSlug(post) },
+    props: {
+      post,
+      previousPost: posts[index + 1],
+      nextPost: posts[index - 1],
+    },
+  }));
+}
+
+const { post, previousPost, nextPost } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<BlogPostLayout post={post} headings={headings} previousPost={previousPost} nextPost={nextPost}>
+  <Content />
+</BlogPostLayout>

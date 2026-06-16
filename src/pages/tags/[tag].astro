@@ -1,0 +1,68 @@
+---
+import { getCollection } from "astro:content";
+import PageHeader from "../../components/common/PageHeader.astro";
+import PostCard from "../../components/common/PostCard.astro";
+import Layout from "../../layouts/Layout.astro";
+import { filterPublishedPosts, getTagCounts, slugify, sortPostsByDate } from "../../lib/blog";
+
+export async function getStaticPaths() {
+  const allPosts = filterPublishedPosts(await getCollection("blog"));
+  const tags = getTagCounts(allPosts);
+  return tags.map((tag) => ({
+    params: { tag: slugify(tag.name) },
+    props: { tagName: tag.name },
+  }));
+}
+
+const allPosts = filterPublishedPosts(await getCollection("blog"));
+const { tagName } = Astro.props;
+const posts = sortPostsByDate(allPosts.filter((post) => post.data.tags.includes(tagName)));
+---
+
+<Layout title={`#${tagName} | YiXin-加油！`} description={`#${tagName} 相关笔记。`}>
+  <main class="page-shell">
+    <PageHeader eyebrow="标签文章" title={`#${tagName}`} description={`收录所有与 #${tagName} 相关的技术笔记、项目记录和日常思考。`} />
+
+    <section class="tag-meta" aria-label="标签统计">
+      <div class="plain-card">
+        <span>标签名称</span>
+        <strong>#{tagName}</strong>
+      </div>
+      <div class="plain-card">
+        <span>文章数量</span>
+        <strong>{posts.length} 篇</strong>
+      </div>
+    </section>
+
+    <section class="post-grid" aria-label={`#${tagName} 相关文章`}>
+      {posts.map((post) => <PostCard post={post} />)}
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .tag-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .tag-meta span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .tag-meta strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 560px) {
+    .tag-meta {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,218 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { getCollection } from "astro:content";
+import {
+  filterPublishedPosts,
+  formatDate,
+  formatMonth,
+  getPostUrl,
+  getCategoryLabel,
+  getPrimaryCategory,
+  getReadingTime,
+  sortPostsByDate,
+} from "../../lib/blog";
+
+const posts = sortPostsByDate(filterPublishedPosts(await getCollection("blog")));
+const archiveGroups = posts.reduce(
+  (groups, post) => {
+    const year = String(post.data.pubDate.getFullYear());
+    const month = formatMonth(post.data.pubDate);
+    groups[year] ??= {};
+    groups[year][month] ??= [];
+    groups[year][month].push(post);
+    return groups;
+  },
+  {} as Record<string, Record<string, typeof posts>>,
+);
+---
+
+<Layout
+  title="写作归档 | YiXin-加油！"
+  description="按时间回看技术学习、项目实践和日常记录。"
+>
+  <main class="page-shell">
+    <PageHeader
+      eyebrow="时间线"
+      title="写作归档"
+      description="按时间回看技术学习、项目实践和日常记录，保留每一次阶段性思考。"
+    />
+
+    <section class="archive-stats" aria-label="归档统计">
+      <div class="plain-card">
+        <span>文章总数</span>
+        <strong>{posts.length}</strong>
+      </div>
+      <div class="plain-card">
+        <span>记录年份</span>
+        <strong>{Object.keys(archiveGroups).length}</strong>
+      </div>
+      <div class="plain-card">
+        <span>最近更新</span>
+        <strong>{posts[0] ? formatDate(posts[0].data.pubDate) : "-"}</strong>
+      </div>
+    </section>
+
+    <section class="archive-timeline" aria-label="写作时间线">
+      {
+        Object.entries(archiveGroups).map(([year, months]) => (
+          <section class="year-group">
+            <h2>{year}</h2>
+            {Object.entries(months).map(([month, posts]) => (
+              <div class="month-group">
+                <h3>{month}</h3>
+                <div class="timeline-list">
+                  {posts.map((post) => (
+                    <a class="timeline-post" href={getPostUrl(post)}>
+                      <time>{formatDate(post.data.pubDate).replace(`, ${year}`, "")}</time>
+                      <div>
+                        <h3>{post.data.title}</h3>
+                        <p>
+                          <span>{getCategoryLabel(getPrimaryCategory(post))}</span>
+                          <span>{getReadingTime(post)}</span>
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        ))
+      }
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .archive-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 52px;
+  }
+
+  .archive-stats span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .archive-stats strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.35rem;
+  }
+
+  .year-group {
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .year-group::before {
+    position: absolute;
+    top: 54px;
+    bottom: 0;
+    left: 7px;
+    width: 1px;
+    background: linear-gradient(180deg, var(--accent), var(--line) 40%, transparent);
+    content: "";
+  }
+
+  .year-group > h2 {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    margin: 0 0 24px;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+    border-radius: 999px;
+    padding: 0 16px;
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    font-size: 2.2rem;
+    line-height: 1;
+  }
+
+  .month-group {
+    margin-bottom: 42px;
+  }
+
+  .month-group > h3 {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .timeline-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .timeline-post {
+    position: relative;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 18px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: transparent;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .timeline-post::before {
+    position: absolute;
+    top: 24px;
+    left: -25px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--accent);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 10%, transparent);
+    content: "";
+  }
+
+  .timeline-post:hover {
+    border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    transform: translateX(2px);
+  }
+
+  .timeline-post time {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .timeline-post h3 {
+    margin: 0;
+    font-size: 1rem;
+    transition: color 160ms ease;
+  }
+
+  .timeline-post p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  @media (max-width: 560px) {
+    .archive-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline-post {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>

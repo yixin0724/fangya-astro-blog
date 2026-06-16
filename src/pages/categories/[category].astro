@@ -1,0 +1,83 @@
+---
+import { getCollection } from "astro:content";
+import PageHeader from "../../components/common/PageHeader.astro";
+import PostCard from "../../components/common/PostCard.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+  filterPublishedPosts,
+  getCategoryLabel,
+  getCategoryCounts,
+  getPostCategories,
+  slugify,
+  sortPostsByDate,
+} from "../../lib/blog";
+
+export async function getStaticPaths() {
+  const allPosts = filterPublishedPosts(await getCollection("blog"));
+  const categories = getCategoryCounts(allPosts);
+  return categories.map((category) => ({
+    params: { category: slugify(category.name) },
+    props: { categoryName: category.name },
+  }));
+}
+
+const allPosts = filterPublishedPosts(await getCollection("blog"));
+const { categoryName } = Astro.props;
+const category = getCategoryCounts(allPosts).find((item) => item.name === categoryName);
+const categoryLabel = getCategoryLabel(categoryName);
+const posts = sortPostsByDate(
+  allPosts.filter((post) => getPostCategories(post).includes(categoryName)),
+);
+---
+
+<Layout title={`${categoryLabel} | YiXin-加油！`} description={category?.description ?? `${categoryLabel} 相关笔记。`}>
+  <main class="page-shell">
+    <PageHeader
+      eyebrow="分类文章"
+      title={categoryLabel}
+      description={category?.description ?? `${categoryLabel} 相关笔记。`}
+    />
+
+    <section class="category-meta" aria-label="分类统计">
+      <div class="plain-card">
+        <span>分类标识</span>
+        <strong>{categoryName}</strong>
+      </div>
+      <div class="plain-card">
+        <span>文章数量</span>
+        <strong>{posts.length} 篇</strong>
+      </div>
+    </section>
+
+    <section class="post-grid" aria-label={`${categoryLabel}文章`}>
+      {posts.map((post) => <PostCard post={post} />)}
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .category-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .category-meta span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .category-meta strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 560px) {
+    .category-meta {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

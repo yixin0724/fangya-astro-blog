@@ -1,0 +1,23 @@
+---
+import ProjectReadme from "../../components/projects/ProjectReadme.astro";
+---
+
+<ProjectReadme
+  title="AI Agent Demo"
+  status="规划中"
+  description="围绕工具调用、流程自动化和 LLM 应用设计的小型 AI Agent 实验项目。"
+  tech={["LLM", "Agent", "Python", "Tool Calling"]}
+  github="https://github.com/yixin0724"
+  overview="这个项目会作为一个小型实验工作台，用来理解 Agent 如何拆解任务、调用工具、读取输出并继续推理。目标是在进入更复杂的自动化流程之前，把范围控制在可验证、可复盘的实践场景里。"
+  features={[
+    "设计基础工具调用流程。",
+    "记录结构化任务输入和执行日志。",
+    "沉淀可重复实验的 prompt 模板。",
+    "整理失败案例、重试策略和流程边界。",
+  ]}
+  roadmap={[
+    "定义第一个最小可用 Agent 任务场景。",
+    "先实现 CLI 原型，再考虑加入 UI。",
+    "对比简单工具调用和检索增强工作流的效果。",
+  ]}
+/>

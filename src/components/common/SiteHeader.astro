@@ -1,0 +1,95 @@
+---
+import { navItems } from "../../data/mock";
+import { siteConfig } from "../../site.config";
+
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+const isActive = (href: string) => {
+  if (href === "/") return currentPath === "/";
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+};
+---
+
+<header class="site-header" data-pagefind-ignore>
+  <nav class="nav-shell" aria-label="Primary navigation">
+    <a class="brand" href="/" aria-label={`${siteConfig.author} 首页`}>
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>{siteConfig.author}</span>
+    </a>
+
+    <div class="nav-links">
+      {
+        navItems.map((item) => (
+          <a href={item.href} class={isActive(item.href) ? "active" : ""}>
+            {item.label}
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="nav-actions">
+      <div class="search-box" data-search-box>
+        <button class="icon-button" type="button" aria-label="打开搜索" data-search-toggle>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m21 21-4.35-4.35"></path>
+            <circle cx="11" cy="11" r="7"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <button class="icon-button theme-toggle" type="button" aria-label="切换深色模式" data-theme-toggle>
+        <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a7.1 7.1 0 1 0 11.1 11.1Z"></path>
+        </svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path>
+          <path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.41 1.41"></path>
+          <path d="m17.66 17.66 1.41 1.41"></path>
+          <path d="M2 12h2"></path>
+          <path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path>
+          <path d="m19.07 4.93-1.41 1.41"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<div class="search-command" data-search-panel hidden data-pagefind-ignore>
+  <button class="search-backdrop" type="button" aria-label="关闭搜索" data-search-close></button>
+  <section class="search-dialog" role="dialog" aria-modal="true" aria-labelledby="search-title">
+    <div class="search-dialog-header">
+      <div>
+        <p class="search-eyebrow">快速检索</p>
+        <h2 id="search-title">搜索 YiXin 笔记</h2>
+      </div>
+      <button class="icon-button" type="button" aria-label="关闭搜索" data-search-close>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m21 21-4.35-4.35"></path>
+        <circle cx="11" cy="11" r="7"></circle>
+      </svg>
+      <label class="sr-only" for="site-search">搜索博客内容</label>
+      <input id="site-search" type="search" placeholder="搜索文章、标签、项目..." autocomplete="off" />
+      <kbd>Esc</kbd>
+    </div>
+
+    <div class="search-status" data-search-status>输入至少 2 个字符开始搜索。</div>
+    <div class="search-results" data-search-results></div>
+
+    <div class="search-hints" aria-hidden="true">
+      <span>试试：Java</span>
+      <span>Spring</span>
+      <span>Docker</span>
+      <span>AI Agent</span>
+    </div>
+  </section>
+</div>

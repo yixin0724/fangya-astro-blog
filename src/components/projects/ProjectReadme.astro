@@ -1,0 +1,168 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+interface Props {
+  title: string;
+  status: string;
+  description: string;
+  tech: string[];
+  github: string;
+  overview: string;
+  features: string[];
+  roadmap: string[];
+}
+
+const { title, status, description, tech, github, overview, features, roadmap } = Astro.props;
+---
+
+<Layout title={`${title} | 项目`} description={description}>
+  <main class="page-shell readme-page">
+    <article class="readme-card" aria-labelledby="project-title">
+      <header class="readme-header">
+        <div>
+          <p class="readme-eyebrow">项目说明</p>
+          <h1 id="project-title">{title}</h1>
+          <p>{description}</p>
+        </div>
+        <span class="status-badge">{status}</span>
+      </header>
+
+      <div class="readme-actions">
+        <a href="/projects">返回项目</a>
+        <a href={github} target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+
+      <section class="readme-section">
+        <h2>项目概览</h2>
+        <p>{overview}</p>
+      </section>
+
+      <section class="readme-section">
+        <h2>技术栈</h2>
+        <div class="tag-list">
+          {tech.map((item) => <span>{item}</span>)}
+        </div>
+      </section>
+
+      <section class="readme-section">
+        <h2>功能设计</h2>
+        <ul>
+          {features.map((item) => <li>{item}</li>)}
+        </ul>
+      </section>
+
+      <section class="readme-section">
+        <h2>后续计划</h2>
+        <ul>
+          {roadmap.map((item) => <li>{item}</li>)}
+        </ul>
+      </section>
+    </article>
+  </main>
+</Layout>
+
+<style>
+  .readme-page {
+    max-width: min(100% - 48px, 980px);
+  }
+
+  .readme-card {
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 36%),
+      color-mix(in srgb, var(--surface-strong) 82%, var(--card-bg));
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.6)) saturate(125%);
+  }
+
+  .readme-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--line);
+    padding: clamp(24px, 4vw, 40px);
+  }
+
+  .readme-eyebrow {
+    margin: 0 0 14px;
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .readme-header h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.35rem, 6vw, 4.4rem);
+    line-height: 1;
+  }
+
+  .readme-header p {
+    max-width: 720px;
+    margin: 18px 0 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .readme-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    padding: 16px clamp(24px, 4vw, 40px);
+  }
+
+  .readme-actions a {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+    border-radius: 999px;
+    padding: 0 13px;
+    background: color-mix(in srgb, var(--glass-bg) 72%, transparent);
+    font-size: 0.88rem;
+    font-weight: 650;
+  }
+
+  .readme-section {
+    padding: 26px clamp(24px, 4vw, 40px);
+  }
+
+  .readme-section + .readme-section {
+    border-top: 1px solid var(--line);
+  }
+
+  .readme-section h2 {
+    margin: 0 0 14px;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+  }
+
+  .readme-section p,
+  .readme-section li {
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .readme-section ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 1.15rem;
+  }
+
+  @media (max-width: 640px) {
+    .readme-page {
+      max-width: min(100% - 32px, 980px);
+    }
+
+    .readme-header {
+      flex-direction: column;
+    }
+  }
+</style>

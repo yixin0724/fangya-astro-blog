@@ -1,0 +1,99 @@
+---
+import { getCollection } from "astro:content";
+import PageHeader from "../../components/common/PageHeader.astro";
+import PostCard from "../../components/common/PostCard.astro";
+import Layout from "../../layouts/Layout.astro";
+import { filterPublishedPosts, formatDate, getCategoryCounts, sortPostsByDate } from "../../lib/blog";
+
+const posts = sortPostsByDate(filterPublishedPosts(await getCollection("blog")));
+const categories = getCategoryCounts(posts).filter((category) => category.postCount > 0);
+---
+
+<Layout title="全部文章 | YiXin-加油！" description="技术笔记、项目记录、科研日记与长期学习沉淀。">
+  <main class="page-shell">
+    <PageHeader
+      eyebrow="知识索引"
+      title="全部文章"
+      description="技术笔记、项目记录、科研日记与长期学习沉淀，按时间持续更新。"
+    />
+
+    <section class="blog-summary" aria-label="Blog summary">
+      <div class="plain-card">
+        <span>文章总数</span>
+        <strong>{posts.length}</strong>
+      </div>
+      <div class="plain-card">
+        <span>最近更新</span>
+        <strong>{posts[0] ? formatDate(posts[0].data.pubDate) : "-"}</strong>
+      </div>
+      <div class="plain-card summary-wide">
+        <span>知识模块</span>
+        <div class="summary-topics">
+          {categories.map((category) => <a href={category.href}>{category.label}</a>)}
+        </div>
+      </div>
+    </section>
+
+    <section class="post-grid" aria-label="全部文章">
+      {posts.map((post) => <PostCard post={post} />)}
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .blog-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .summary-wide {
+    grid-column: span 1;
+  }
+
+  .blog-summary span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .blog-summary strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.28rem;
+  }
+
+  .summary-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .summary-topics a {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+    border-radius: 999px;
+    padding: 0 10px;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--surface-strong) 64%, transparent);
+    font-size: 0.82rem;
+    transition:
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .summary-topics a:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  @media (max-width: 760px) {
+    .blog-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

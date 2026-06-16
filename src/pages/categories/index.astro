@@ -1,0 +1,31 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { getCollection } from "astro:content";
+import { filterPublishedPosts, getCategoryCounts } from "../../lib/blog";
+
+const categories = getCategoryCounts(filterPublishedPosts(await getCollection("blog")));
+---
+
+<Layout title="知识模块 | YiXin-加油！" description="按六个方向组织技术文章、项目记录和日常札记。">
+  <main class="page-shell">
+    <PageHeader
+      eyebrow="六大模块"
+      title="知识模块"
+      description="按学习和实践场景拆分文章，让技术笔记、项目复盘和日常记录各自有清晰入口。"
+    />
+
+    <section class="three-grid" aria-label="分类卡片">
+      {
+        categories.map((category) => (
+          <a class="topic-card" href={category.href}>
+            <span class="topic-icon" aria-hidden="true"></span>
+            <h3>{category.label}</h3>
+            <p>{category.description}</p>
+            <span class="topic-count">{category.count}</span>
+          </a>
+        ))
+      }
+    </section>
+  </main>
+</Layout>

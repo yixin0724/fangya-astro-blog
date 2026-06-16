@@ -1,0 +1,213 @@
+---
+title: "刷题记录"
+pubDate: "2024-10-24"
+updatedDate: "2024-10-24"
+cover: https://pic.imgdb.cn/item/6719abccd29ded1a8c71be73.jpg
+tags: 
+  - "LeetCode"
+  - "算法"
+  - "数据结构"
+  - "刷题记录"
+categories: "Programming"
+description: "记录一下力扣上做过的编程题。"
+draft: false
+---
+
+
+
+
+
+
+
+
+
+# 题号3175
+
+​	题目：找到连续赢K场比赛的第一位玩家
+
+​	难度：中等
+
+```java
+/**
+ * 比赛规则，每个人的技能等级互不相同，获胜者保持在队列的开头，而失败者排到队列的末尾。
+ * 思路
+ * 从规则可知胜者一定是队头的
+ * 题目不需要返回队列，因此可以不用重新排序，因极端情况胜者在最后一位需要对第一个进行比较，此时可以对长度取余，防止越界。
+ * 看测试案例可知这个k非常大，所以只需要对数组遍历一遍，如果还没找出胜者，那此时队头指针指向的一定是最大的那个。
+ * 这种方法只需返回队头指针指向的索引即可
+ *
+ * 具体实现
+ * 采用双指针控制比较的对象，初始化对头指针为0，比较对象j为1
+ * while循环进行比较指针指向的两个人，循环结束条件是队头的人达到了k个胜场。
+ * 每当队列开头的人更换时，胜场就要归为1。
+ *
+ * 时间复杂度：O(n)，其中n是数组的长度。
+ * 空间复杂度：O(1)
+ */
+
+class Solution {
+    public int findWinningPlayer(int[] skills, int k) {
+        int winCount = 0;	//胜场
+        int i = 0;	//队头
+        int j = 1;	//待比较对象
+        int count = 0;  //记录遍历次数，当最后一个玩家比较完后，直接返回队头指针指向的索引
+        int len = skills.length;
+        //循环结束条件，胜场没达到，且还没遍历完一遍
+        while (winCount < k && count <= len) {
+            if (skills[i] > skills[j]) {
+                //当队头大于被比较的对象时，j+1，且胜场+1
+                j = (j + 1) % len;
+                winCount++;
+            } else {
+                //即队头小于被比较的对象，此时要保持队头指向大的，同时胜场要归为1
+                i = j;
+                j = (j + 1) % len;
+                winCount = 1;
+            }
+            //count记录遍历次数
+            count++;
+        }
+        //返回队头指针指向的索引
+        return i;
+    }
+}
+```
+
+```c++
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int findWinningPlayer(vector<int>& skills, int k) {
+        int winCount = 0;
+        int i = 0;
+        int j = 1;
+        int count = 0;
+        int len = skills.size();
+        while (winCount < k && count <= len) {
+            if (skills[i] > skills[j]) {
+                j = (j + 1) % len;
+                winCount++;
+            } else {
+                i = j;
+                j = (j + 1) % len;
+                winCount = 1;
+            }
+            count++;
+        }
+        return i;
+    }
+};
+```
+
+
+
+
+
+
+
+# 题号3180
+
+​	题目：执行操作可获得的最大总奖励 I
+
+​	难度：中等
+
+```java
+/**
+ * 题目条件：选取数组中的值，每次选取的值必须大于当前的总奖励值，通过最优选择，得出最大总奖励
+ * 思路：
+ * 最优问题，可以考虑动态规划
+ * 观察题可以看出来，依次选择的值一定是单调递增的。
+ * 记 rewardValues 的最大值为 m，因为最后一次操作前的总奖励一定小于等于 m−1，所以可获得的最大总奖励小于等于 2m−1。
+ * 所以可以选择dp表的意义为：dp[i]表示总奖励为i能不能获得，dp[i] = 1表示可以获得，dp[i] = 0表示不可以获得。
+ * 使用双重循环，外层循环控制遍历每一个奖励值，内层循环控制从当前值的可获得的最大奖励值开始，依次判断可获得最大奖励值减去当前值是否可以获得。
+ * 时间复杂度：O(n*(m+log n))，其中 n，m 分别是 rewardValues 的长度和最大值。
+ * 空间复杂度：O(m+n)。
+ */
+
+class Solution {
+
+    /**
+     * 计算可以获得的最大总奖励值。
+     *
+     * @param rewardValues 奖励值数组
+     * @return 可以获得的最大总奖励值
+     */
+    public int maxTotalReward(int[] rewardValues) {
+        // 对奖励值数组进行排序
+        Arrays.sort(rewardValues);
+
+        // 获取最大的奖励值
+        int m = rewardValues[rewardValues.length - 1];
+
+        // 初始化动态规划数组，长度为最大奖励值的两倍
+        // 因为我们可能需要考虑从0到最大奖励值两倍之间的所有可能状态
+        int[] dp = new int[2 * m];
+        dp[0] = 1; // 初始状态是1，表示可以达到0奖励值的情况
+
+        // 遍历每个奖励值
+        for (int x : rewardValues) {
+            // 从2x-1开始从后往前遍历，更新dp数组，这里k从2*x-1开始是因为，当前值x可获得的最大奖励值为2*x-1
+            for (int k = 2 * x - 1; k >= x; k--) {
+                if (dp[k - x] == 1) { // 如果k-x可以获得，那加上x后，k也可以获得
+                    dp[k] = 1;
+                }
+            }
+        }
+
+        // 找到dp数组中可以达到的最大奖励值
+        int res = 0;
+        for (int i = dp.length-1; i >=0; i--) {
+            if (dp[i] == 1) {
+                res = i; // 找到最大的直接退出进行返回
+                break;
+            }
+        }
+        return res;
+    }
+}
+```
+
+```c++
+#include <algorithm> // 包含<algorithm>用于sort函数
+#include <vector>    // 包含<vector>用于vector容器
+
+class Solution {
+public:
+    int maxTotalReward(std::vector<int>& rewardValues) {
+        // 对奖励值数组进行排序
+        std::sort(rewardValues.begin(), rewardValues.end());
+
+        // 获取最大的奖励值
+        int m = rewardValues.back(); // 使用.back()获取最后一个元素
+
+        // 初始化动态规划数组，长度为最大奖励值的两倍
+        // 因为我们可能需要考虑从0到最大奖励值两倍之间的所有可能状态
+        std::vector<int> dp(2 * m, 0); // 使用vector初始化长度为2*m的数组，所有元素默认值为0
+        dp[0] = 1; // 初始状态是1，表示可以达到0奖励值的情况
+
+        // 遍历每个奖励值
+        for (int x : rewardValues) {
+            // 从2x-1开始从后往前遍历，更新dp数组
+            for (int k = 2 * x - 1; k >= x; k--) {
+                if (dp[k - x] == 1) { // 如果k-x可以获得，那加上x后，k也可以获得
+                    dp[k] = 1;
+                }
+            }
+        }
+
+        // 找到dp数组中可以达到的最大奖励值
+        int res = 0;
+        for (int i = dp.size() - 1; i >= 0; i--) {
+            if (dp[i] == 1) {
+                res = i; // 找到最大的直接退出进行返回
+                break;
+            }
+        }
+        return res;
+    }
+};
+```
+
+

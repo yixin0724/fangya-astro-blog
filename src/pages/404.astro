@@ -1,0 +1,62 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../site.config";
+---
+
+<Layout title={`404 | ${siteConfig.name}`} description="你访问的页面不存在。">
+  <main class="page-shell not-found-page">
+    <section class="plain-card not-found-card">
+      <span>404</span>
+      <h1>页面不存在</h1>
+      <p>你访问的页面不存在，或者已经被移动到新的地址。</p>
+      <div class="not-found-actions">
+        <a class="section-link" href="/">返回首页</a>
+        <a class="section-link" href="/blog">查看文章</a>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .not-found-page {
+    display: grid;
+    min-height: 62vh;
+    place-items: center;
+  }
+
+  .not-found-card {
+    width: min(100%, 680px);
+    text-align: center;
+  }
+
+  .not-found-card span {
+    color: var(--accent-strong);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+  }
+
+  .not-found-card h1 {
+    margin: 16px 0 0;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    line-height: 1;
+  }
+
+  .not-found-card p {
+    margin: 18px auto 0;
+    max-width: 420px;
+  }
+
+  .not-found-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 560px) {
+    .not-found-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

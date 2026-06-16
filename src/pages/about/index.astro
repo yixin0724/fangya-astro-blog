@@ -1,0 +1,190 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { focusAreas, techStack, timeline } from "../../data/mock";
+import { siteConfig } from "../../site.config";
+---
+
+<Layout title="关于 | YiXin-加油！" description="关于我、技术兴趣和这个博客。">
+  <main class="page-shell">
+    <PageHeader eyebrow="个人介绍" title="关于" description="关于我、技术兴趣和这个博客，也记录当前的学习方向。" />
+
+    <section class="about-stack">
+      <article class="plain-card about-card">
+        <h2>关于我</h2>
+        <p>
+          你好，我是 YiXin，目前关注后端工程、AI Agent 和长期技术写作。我会用这个博客记录日常思考、
+          技术笔记、项目实践和学习轨迹，让知识尽量沉淀成可以反复回看的内容。
+        </p>
+      </article>
+
+      <section class="about-section" aria-labelledby="focus-title">
+        <div class="section-header">
+          <div>
+            <h2 id="focus-title">关注方向</h2>
+            <p>当前正在学习、实践和持续写作的方向。</p>
+          </div>
+        </div>
+        <div class="three-grid">
+          {
+            focusAreas.map((area) => (
+              <article class="plain-card focus-card">
+                <h3>{area}</h3>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="stack-title">
+        <div class="section-header">
+          <div>
+            <h2 id="stack-title">技术栈</h2>
+            <p>日常项目中使用或正在学习的工具与技术。</p>
+          </div>
+        </div>
+        <div class="stack-list">
+          {
+            techStack.map((item) => (
+              <div class="stack-row">
+                <strong>{item.label}</strong>
+                <span>{item.value}</span>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="timeline-title">
+        <div class="section-header">
+          <div>
+            <h2 id="timeline-title">时间线</h2>
+            <p>保留学习和成长过程中的轻量记录。</p>
+          </div>
+        </div>
+        <div class="about-timeline">
+          {
+            timeline.map((item) => (
+              <div class="timeline-row">
+                <strong>{item.year}</strong>
+                <p>{item.text}</p>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="about-section" aria-labelledby="contact-title">
+        <div class="section-header">
+          <div>
+            <h2 id="contact-title">联系</h2>
+            <p>位置、邮箱和 GitHub 与首页保持一致。</p>
+          </div>
+        </div>
+        <div class="card-grid">
+          <a class="plain-card" href="/about">
+            <h3>位置</h3>
+            <p>{siteConfig.location}</p>
+          </a>
+          <a class="plain-card" href={`mailto:${siteConfig.email}`}>
+            <h3>邮箱</h3>
+            <p>{siteConfig.email}</p>
+          </a>
+          <a class="plain-card" href={siteConfig.github} target="_blank" rel="noreferrer">
+            <h3>GitHub</h3>
+            <p>github.com/yixin0724</p>
+          </a>
+        </div>
+      </section>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .about-stack,
+  .about-section {
+    display: grid;
+    gap: 52px;
+  }
+
+  .about-card p {
+    max-width: 780px;
+    margin-bottom: 0;
+    font-size: 1.02rem;
+  }
+
+  .focus-card {
+    min-height: 110px;
+  }
+
+  .stack-list,
+  .about-timeline {
+    display: grid;
+    gap: 12px;
+  }
+
+  .stack-row,
+  .timeline-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 20px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.45)) saturate(120%);
+    transition:
+      border-color var(--duration-fast) ease,
+      box-shadow var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .stack-row::before,
+  .timeline-row::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 52%);
+    opacity: 0;
+    transition: opacity var(--duration-fast) ease;
+    content: "";
+    pointer-events: none;
+  }
+
+  .stack-row:hover,
+  .timeline-row:hover {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .stack-row:hover::before,
+  .timeline-row:hover::before {
+    opacity: 1;
+  }
+
+  .stack-row strong,
+  .stack-row span,
+  .timeline-row strong,
+  .timeline-row p {
+    position: relative;
+    z-index: 1;
+  }
+
+  .stack-row span,
+  .timeline-row p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 560px) {
+    .stack-row,
+    .timeline-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>

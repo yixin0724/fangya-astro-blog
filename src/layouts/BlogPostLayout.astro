@@ -1,0 +1,966 @@
+---
+import Layout from "./Layout.astro";
+import { siteConfig } from "../site.config";
+import {
+  formatDate,
+  getCategoryLabel,
+  getPrimaryCategory,
+  getReadingTime,
+  getPostUrl,
+  slugify,
+  type BlogPost,
+} from "../lib/blog";
+
+interface Props {
+  post: BlogPost;
+  headings?: Array<{ depth: number; slug: string; text: string }>;
+  previousPost?: BlogPost;
+  nextPost?: BlogPost;
+}
+
+const { post, headings = [], previousPost, nextPost } = Astro.props;
+const readingTime = getReadingTime(post);
+const tocHeadings = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
+---
+
+<Layout title={`${post.data.title} | ${siteConfig.name}`} description={post.data.description}>
+  <div class="reading-progress" aria-hidden="true">
+    <span data-reading-progress></span>
+  </div>
+
+  <main class="article-shell">
+    <article class="article-main" data-pagefind-body>
+      <header class="article-header">
+        <div class="article-kicker" aria-label="Article metadata">
+          <a class="article-category" href={`/categories/${slugify(getPrimaryCategory(post))}`}>
+            {getCategoryLabel(getPrimaryCategory(post))}
+          </a>
+          <span>{formatDate(post.data.pubDate)}</span>
+          <span>{readingTime}</span>
+        </div>
+
+        <h1>{post.data.title}</h1>
+        <p>{post.data.description}</p>
+
+        <div class="article-meta">
+          <div class="tag-list">
+            {post.data.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+          {
+            post.data.updatedDate && (
+              <span class="updated-date">更新于 {formatDate(post.data.updatedDate)}</span>
+            )
+          }
+        </div>
+      </header>
+
+      {
+        post.data.cover && (
+          <figure class="article-cover">
+            <img src={post.data.cover} alt="" loading="lazy" />
+          </figure>
+        )
+      }
+
+      <div class="markdown-body">
+        <slot />
+      </div>
+
+      <aside class="article-afterword" aria-label="文章信息">
+        <div>
+          <span class="afterword-eyebrow">阅读完成</span>
+          <h2>把这篇笔记归档到知识地图中</h2>
+          <p>你可以继续查看同分类内容，或者通过标签回到相关主题。</p>
+        </div>
+        <div class="afterword-meta">
+          <a class="afterword-category" href={`/categories/${slugify(getPrimaryCategory(post))}`}>
+            {getCategoryLabel(getPrimaryCategory(post))}
+          </a>
+          <div class="tag-list">
+            {post.data.tags.map((tag) => <a href={`/tags/${slugify(tag)}`}>{tag}</a>)}
+          </div>
+          <a class="afterword-back" href="/blog">返回全部文章</a>
+        </div>
+      </aside>
+
+      {
+        (previousPost || nextPost) && (
+          <nav class="article-neighbors" aria-label="文章导航">
+            {previousPost ? (
+              <a class="neighbor-card" href={getPostUrl(previousPost)}>
+                <span>上一篇</span>
+                <strong>{previousPost.data.title}</strong>
+              </a>
+            ) : (
+              <span></span>
+            )}
+            {nextPost && (
+              <a class="neighbor-card next" href={getPostUrl(nextPost)}>
+                <span>下一篇</span>
+                <strong>{nextPost.data.title}</strong>
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </article>
+
+    {
+      tocHeadings.length > 0 && (
+        <aside class="article-toc" aria-label="文章目录">
+          <div class="toc-card">
+            <span class="toc-eyebrow">目录</span>
+            <h2>本文目录</h2>
+            <nav>
+              {tocHeadings.map((heading) => (
+                <a class={`toc-depth-${heading.depth}`} href={`#${heading.slug}`}>
+                  {heading.text}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </aside>
+      )
+    }
+  </main>
+
+  <script is:inline>
+    const articleRoot = document.querySelector(".markdown-body");
+    const readingProgress = document.querySelector("[data-reading-progress]");
+    const tocLinks = Array.from(document.querySelectorAll(".toc-card a"));
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const updateReadingProgress = () => {
+      if (!articleRoot || !readingProgress) return;
+      const articleTop = articleRoot.getBoundingClientRect().top + window.scrollY;
+      const articleHeight = Math.max(1, articleRoot.scrollHeight - window.innerHeight * 0.72);
+      const progress = Math.min(1, Math.max(0, (window.scrollY - articleTop + 120) / articleHeight));
+      readingProgress.style.transform = `scaleX(${progress})`;
+    };
+
+    updateReadingProgress();
+    document.addEventListener("scroll", updateReadingProgress, { passive: true });
+    window.addEventListener("resize", updateReadingProgress);
+
+    if (articleRoot) {
+      const headings = Array.from(articleRoot.querySelectorAll("h2[id], h3[id], h4[id]"));
+
+      for (const heading of headings) {
+        if (heading.querySelector(".heading-anchor")) continue;
+        const anchor = document.createElement("a");
+        anchor.className = "heading-anchor";
+        anchor.href = `#${heading.id}`;
+        anchor.setAttribute("aria-label", "复制本节链接");
+        anchor.textContent = "#";
+        heading.append(anchor);
+      }
+
+      if (tocLinks.length > 0 && "IntersectionObserver" in window) {
+        const linkMap = new Map(tocLinks.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
+        const setActiveToc = (id) => {
+          for (const link of tocLinks) link.classList.toggle("is-active", linkMap.get(id) === link);
+        };
+        if (headings[0]?.id) setActiveToc(headings[0].id);
+
+        const visibleHeadings = new Set();
+        const updateActiveFromScroll = () => {
+          let activeHeading = headings[0];
+          for (const heading of headings) {
+            if (heading.getBoundingClientRect().top <= 140) activeHeading = heading;
+            else break;
+          }
+          if (activeHeading?.id) setActiveToc(activeHeading.id);
+        };
+
+        const headingObserver = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) visibleHeadings.add(entry.target.id);
+              else visibleHeadings.delete(entry.target.id);
+            }
+
+            const activeId = [...headings].reverse().find((heading) => visibleHeadings.has(heading.id))?.id;
+            if (activeId) setActiveToc(activeId);
+            else updateActiveFromScroll();
+          },
+          { rootMargin: "-18% 0px -68% 0px", threshold: 0.01 },
+        );
+
+        headings.forEach((heading) => headingObserver.observe(heading));
+        document.addEventListener("scroll", updateActiveFromScroll, { passive: true });
+      }
+
+      const codeBlocks = Array.from(articleRoot.querySelectorAll("pre"));
+      for (const pre of codeBlocks) {
+        const code = pre.querySelector("code");
+        if (!code || pre.querySelector(".code-copy")) continue;
+
+        const languageClass = Array.from(code.classList).find((className) => className.startsWith("language-"));
+        const language = languageClass?.replace("language-", "") || "code";
+
+        const label = document.createElement("span");
+        label.className = "code-label";
+        label.textContent = language;
+
+        const button = document.createElement("button");
+        button.className = "code-copy";
+        button.type = "button";
+        button.textContent = "复制";
+
+        button.addEventListener("click", async () => {
+          const text = code.textContent || "";
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = "已复制";
+            if (!reducedMotion) {
+              window.setTimeout(() => {
+                button.textContent = "复制";
+              }, 1400);
+            }
+          } catch {
+            button.textContent = "失败";
+            window.setTimeout(() => {
+              button.textContent = "复制";
+            }, 1400);
+          }
+        });
+
+        pre.append(label, button);
+      }
+    }
+  </script>
+</Layout>
+
+<style>
+  .article-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 880px) 260px;
+    align-items: start;
+    width: min(100% - 48px, 1180px);
+    margin: 0 auto;
+    gap: clamp(28px, 4vw, 48px);
+    padding: 72px 0 96px;
+  }
+
+  .reading-progress {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 80;
+    height: 3px;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .reading-progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-strong), var(--accent-hot));
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 42%, transparent);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .article-main {
+    min-width: 0;
+  }
+
+  .article-header {
+    position: relative;
+    margin-bottom: 30px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: clamp(26px, 5vw, 46px);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 40%),
+      linear-gradient(315deg, color-mix(in srgb, var(--accent-hot) 7%, transparent), transparent 52%),
+      color-mix(in srgb, var(--card-bg) 92%, transparent);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.7)) saturate(125%);
+    overflow: hidden;
+  }
+
+  .article-header > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .article-header::before {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: min(32vw, 260px);
+    height: 130px;
+    opacity: 0.5;
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--accent) 15%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--accent) 15%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+    mask-image: linear-gradient(135deg, black, transparent 76%);
+    content: "";
+    pointer-events: none;
+  }
+
+  .article-header::after {
+    position: absolute;
+    right: 24px;
+    bottom: 0;
+    left: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 42%, transparent), transparent);
+    content: "";
+  }
+
+  .article-kicker,
+  .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .article-kicker {
+    margin-bottom: 18px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .article-kicker::before {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 80%, transparent);
+    content: "";
+  }
+
+  .article-kicker span:not(.article-category) {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+  }
+
+  .article-category {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    border-radius: 999px;
+    padding: 0 10px;
+    color: var(--accent-strong);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    font-weight: 700;
+  }
+
+  .article-header h1 {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.65rem, 6vw, 5rem);
+    font-weight: 780;
+    line-height: 1.04;
+    letter-spacing: 0;
+  }
+
+  .article-header > p {
+    max-width: 760px;
+    margin: 20px 0 0;
+    color: var(--muted);
+    font-size: clamp(1.02rem, 1.5vw, 1.14rem);
+    line-height: 1.75;
+  }
+
+  .article-meta {
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .updated-date {
+    white-space: nowrap;
+  }
+
+  .article-cover {
+    margin: 0 0 30px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .article-cover img {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+  }
+
+  .markdown-body {
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: clamp(24px, 5vw, 52px);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 86%, transparent), color-mix(in srgb, var(--surface-strong) 76%, var(--card-bg))),
+      var(--card-bg);
+    box-shadow: var(--card-shadow);
+    color: var(--text);
+    font-size: clamp(1rem, 1.2vw, 1.04rem);
+    line-height: 1.9;
+  }
+
+  .markdown-body {
+    scroll-margin-top: 90px;
+  }
+
+  .markdown-body :global(*) {
+    max-width: 100%;
+  }
+
+  .markdown-body :global(h1),
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4),
+  .markdown-body :global(h5),
+  .markdown-body :global(h6) {
+    scroll-margin-top: 92px;
+  }
+
+  .markdown-body :global(h1),
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4) {
+    margin: 2.15em 0 0.75em;
+    font-family: var(--font-display);
+    line-height: 1.28;
+    letter-spacing: 0;
+  }
+
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4) {
+    position: relative;
+  }
+
+  .markdown-body :global(h2) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+    padding-bottom: 0.48em;
+    font-size: clamp(1.55rem, 3vw, 2rem);
+  }
+
+  .markdown-body :global(h2::before) {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
+    border-radius: 3px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 34%, transparent);
+    content: "";
+    transform: rotate(45deg);
+  }
+
+  .markdown-body :global(h3) {
+    font-size: clamp(1.25rem, 2.2vw, 1.48rem);
+  }
+
+  .markdown-body :global(h4) {
+    color: color-mix(in srgb, var(--text) 90%, var(--accent-strong));
+    font-size: 1.08rem;
+  }
+
+  .markdown-body :global(.heading-anchor) {
+    margin-left: 0.45em;
+    color: var(--accent-strong);
+    font-size: 0.78em;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity var(--duration-fast) ease;
+  }
+
+  .markdown-body :global(h2:hover .heading-anchor),
+  .markdown-body :global(h3:hover .heading-anchor),
+  .markdown-body :global(h4:hover .heading-anchor),
+  .markdown-body :global(.heading-anchor:focus-visible) {
+    opacity: 1;
+  }
+
+  .markdown-body :global(h1:first-child),
+  .markdown-body :global(h2:first-child),
+  .markdown-body :global(h3:first-child) {
+    margin-top: 0;
+  }
+
+  .markdown-body :global(p),
+  .markdown-body :global(ul),
+  .markdown-body :global(ol),
+  .markdown-body :global(blockquote),
+  .markdown-body :global(table),
+  .markdown-body :global(pre) {
+    margin: 1.18em 0;
+  }
+
+  .markdown-body :global(p) {
+    text-wrap: pretty;
+  }
+
+  .markdown-body :global(ul),
+  .markdown-body :global(ol) {
+    padding-left: 1.35em;
+  }
+
+  .markdown-body :global(li + li) {
+    margin-top: 0.4em;
+  }
+
+  .markdown-body :global(li::marker) {
+    color: var(--accent-strong);
+  }
+
+  .markdown-body :global(a) {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition:
+      color var(--duration-fast) ease,
+      text-decoration-color var(--duration-fast) ease;
+  }
+
+  .markdown-body :global(a:hover) {
+    color: var(--accent);
+  }
+
+  .markdown-body :global(img) {
+    display: block;
+    height: auto;
+    margin: 1.6em auto;
+    border-radius: 8px;
+  }
+
+  .markdown-body :global(blockquote) {
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.95em 1.1em;
+    color: var(--muted);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 58%),
+      color-mix(in srgb, var(--surface) 70%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-border) 68%, transparent);
+  }
+
+  .markdown-body :global(code) {
+    border-radius: 6px;
+    padding: 0.15em 0.35em;
+    color: color-mix(in srgb, var(--accent-strong) 86%, var(--text));
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    font-size: 0.92em;
+    font-family: var(--font-mono);
+  }
+
+  .markdown-body :global(pre) {
+    position: relative;
+    max-width: 100%;
+    contain: inline-size;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.12));
+    border-radius: 10px;
+    padding: 54px 20px 20px;
+    background:
+      radial-gradient(circle at 18px 18px, #ff5f57 0 4px, transparent 4.5px),
+      radial-gradient(circle at 34px 18px, #ffbd2e 0 4px, transparent 4.5px),
+      radial-gradient(circle at 50px 18px, #28c840 0 4px, transparent 4.5px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 46px),
+      linear-gradient(135deg, rgba(53, 224, 208, 0.1), transparent 45%),
+      #0d141b;
+    color: #f6f6f7;
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    scrollbar-color: color-mix(in srgb, var(--accent) 48%, #3b4652) transparent;
+  }
+
+  .markdown-body :global(pre code) {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .markdown-body :global(pre code *),
+  .markdown-body :global(pre .line) {
+    max-width: none;
+  }
+
+  .markdown-body :global(.code-label),
+  .markdown-body :global(.code-copy) {
+    position: absolute;
+    top: 12px;
+    z-index: 2;
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 0 10px;
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.06);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+
+  .markdown-body :global(.code-label) {
+    left: 72px;
+    text-transform: uppercase;
+  }
+
+  .markdown-body :global(.code-copy) {
+    right: 14px;
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) ease,
+      color var(--duration-fast) ease,
+      background-color var(--duration-fast) ease;
+  }
+
+  .markdown-body :global(.code-copy:hover) {
+    border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.18));
+    color: #ffffff;
+    background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.08));
+  }
+
+  .markdown-body :global(table) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--surface-strong) 78%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-border) 60%, transparent);
+  }
+
+  .markdown-body :global(th),
+  .markdown-body :global(td) {
+    border: 1px solid var(--line);
+    padding: 11px 13px;
+    vertical-align: top;
+  }
+
+  .markdown-body :global(th) {
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    font-family: var(--font-display);
+  }
+
+  .article-toc {
+    position: sticky;
+    top: 92px;
+    max-height: calc(100vh - 112px);
+    overflow: auto;
+  }
+
+  .toc-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 18px 16px;
+    background: color-mix(in srgb, var(--glass-bg) 88%, var(--surface));
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.7)) saturate(125%);
+  }
+
+  .toc-card::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 58%, transparent), transparent);
+    content: "";
+  }
+
+  .toc-eyebrow {
+    display: inline-flex;
+    margin-bottom: 6px;
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .toc-card h2 {
+    margin: 0 0 14px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+
+  .toc-card nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .toc-card a {
+    border-left: 2px solid transparent;
+    border-radius: 0 6px 6px 0;
+    padding: 6px 8px 6px 11px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .toc-card a:hover,
+  .toc-card a.is-active {
+    border-color: var(--accent);
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+  }
+
+  .toc-card a.is-active {
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 80%, var(--accent-strong));
+  }
+
+  .article-afterword {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr);
+    gap: 22px;
+    margin-top: 28px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: clamp(22px, 4vw, 30px);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 48%),
+      linear-gradient(315deg, color-mix(in srgb, var(--accent-hot) 6%, transparent), transparent 58%),
+      var(--card-bg);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.58)) saturate(125%);
+  }
+
+  .afterword-eyebrow {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    border-radius: 999px;
+    padding: 0 10px;
+    color: var(--accent-strong);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 760;
+  }
+
+  .article-afterword h2 {
+    margin: 14px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.2;
+  }
+
+  .article-afterword p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .afterword-meta {
+    display: flex;
+    align-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .afterword-category,
+  .afterword-back,
+  .afterword-meta .tag-list a {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+    border-radius: 999px;
+    padding: 0 11px;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--surface-strong) 64%, transparent);
+    font-size: 0.84rem;
+    transition:
+      border-color 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .afterword-category,
+  .afterword-back {
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+
+  .afterword-category:hover,
+  .afterword-back:hover,
+  .afterword-meta .tag-list a:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  .toc-depth-3 {
+    margin-left: 12px;
+  }
+
+  .toc-depth-4 {
+    margin-left: 24px;
+    font-size: 0.8rem;
+  }
+
+  .article-neighbors {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .neighbor-card {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    min-height: 112px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 20px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 54%),
+      var(--card-bg);
+    box-shadow: var(--card-shadow);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .neighbor-card::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 52%);
+    opacity: 0;
+    transition: opacity var(--duration-normal) ease;
+    content: "";
+    pointer-events: none;
+  }
+
+  .neighbor-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .neighbor-card:hover::before {
+    opacity: 1;
+  }
+
+  .neighbor-card span {
+    position: relative;
+    z-index: 1;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+  }
+
+  .neighbor-card strong {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    line-height: 1.45;
+  }
+
+  .neighbor-card.next {
+    text-align: right;
+  }
+
+  @media (max-width: 1100px) {
+    .article-shell {
+      grid-template-columns: minmax(0, 1fr);
+      width: min(100% - 48px, 920px);
+    }
+
+    .article-toc {
+      position: static;
+      order: -1;
+      max-height: none;
+    }
+
+    .toc-card nav {
+      max-height: 240px;
+      overflow: auto;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .article-shell {
+      width: min(100% - 32px, 920px);
+      padding-top: 44px;
+      padding-bottom: 68px;
+    }
+
+    .article-header {
+      padding: 22px;
+    }
+
+    .article-header h1 {
+      font-size: clamp(2.1rem, 12vw, 2.75rem);
+    }
+
+    .article-meta {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .markdown-body {
+      padding: 22px 18px;
+      line-height: 1.82;
+    }
+
+    .markdown-body :global(pre) {
+      margin-right: -6px;
+      margin-left: -6px;
+      border-radius: 8px;
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
+    .article-neighbors {
+      grid-template-columns: 1fr;
+    }
+
+    .article-afterword {
+      grid-template-columns: 1fr;
+    }
+
+    .neighbor-card.next {
+      text-align: left;
+    }
+  }
+</style>

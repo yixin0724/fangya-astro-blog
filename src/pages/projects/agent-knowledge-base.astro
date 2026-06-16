@@ -1,0 +1,23 @@
+---
+import ProjectReadme from "../../components/projects/ProjectReadme.astro";
+---
+
+<ProjectReadme
+  title="Agent Knowledge Base Console"
+  status="原型"
+  description="用于把 Markdown 技术笔记整理成可检索知识单元的实验项目，服务后续 RAG 和 Agent 工作流。"
+  tech={["Astro", "Pagefind", "LLM", "RAG"]}
+  github="https://github.com/yixin0724"
+  overview="这个原型主要探索个人技术笔记如何完成清洗、标注、搜索和结构化，为后续 RAG 或 Agent 工作流准备更稳定的知识层。第一版聚焦内容结构、主题元数据、检索质量，以及便于回看知识片段的安静界面。"
+  features={[
+    "按分类、标签和更新时间索引 Markdown 文章。",
+    "使用 Pagefind 作为本地检索基线。",
+    "为后续 LLM 检索实验准备干净的摘要片段。",
+    "把后端、AI Agent 和大数据笔记放入同一张知识地图。",
+  ]}
+  roadmap={[
+    "为长篇技术笔记设计文档切分策略。",
+    "补充 prompt 和检索对比实验所需的元数据。",
+    "内容层稳定后，接入一个小型本地 Agent 工作流。",
+  ]}
+/>

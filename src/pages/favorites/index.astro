@@ -1,0 +1,61 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { favorites } from "../../data/mock";
+---
+
+<Layout
+  title="收藏 | YiXin-加油！"
+  description="整理常用工具、文章、书籍和学习资源。"
+>
+  <main class="page-shell">
+    <PageHeader eyebrow="资源清单" title="收藏" description="整理常用工具、文章、书籍和学习资源，方便后续反复查阅。" />
+
+    <section class="card-grid" aria-label="收藏资源分组">
+      {
+        favorites.map((group) => (
+          <article class="resource-card">
+            <h2>{group.group}</h2>
+            <p>{group.description}</p>
+            <ul class="resource-list">
+              {group.items.map((item) => (
+                <li>
+                  <a href={item.href} target="_blank" rel="noreferrer">
+                    {item.name}
+                  </a>
+                  <span>{item.description}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .resource-list {
+    display: grid;
+    gap: 16px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .resource-list li {
+    display: grid;
+    gap: 4px;
+  }
+
+  .resource-list a {
+    font-weight: 680;
+    transition: color 160ms ease;
+  }
+
+  .resource-list span {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+</style>

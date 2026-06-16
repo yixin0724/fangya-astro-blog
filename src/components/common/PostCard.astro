@@ -1,0 +1,34 @@
+---
+import {
+  formatDate,
+  getCategoryLabel,
+  getPostUrl,
+  getPrimaryCategory,
+  getReadingTime,
+  type BlogPost,
+} from "../../lib/blog";
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const primaryCategory = getPrimaryCategory(post);
+---
+
+<article class="post-card">
+  <a class="card-fill-link" href={getPostUrl(post)} aria-label={post.data.title}></a>
+  <div class="card-topline">
+    <span class="badge">{getCategoryLabel(primaryCategory)}</span>
+    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+  </div>
+  <h3>{post.data.title}</h3>
+  <p>{post.data.description}</p>
+  <div class="card-meta">
+    <div class="tag-list">
+      {post.data.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
+    </div>
+    <span class="reading-time">{getReadingTime(post)}</span>
+  </div>
+  <span class="card-read-more" aria-hidden="true">阅读</span>
+</article>

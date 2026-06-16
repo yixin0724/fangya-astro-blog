@@ -1,11 +1,599 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import PostCard from "../components/common/PostCard.astro";
+import { projects } from "../data/mock";
+import { filterPublishedPosts, getCategoryCounts, sortPostsByDate } from "../lib/blog";
+import { siteConfig } from "../site.config";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const posts = sortPostsByDate(filterPublishedPosts(await getCollection("blog")));
+const latestPosts = posts.slice(0, 4);
+const topics = getCategoryCounts(posts);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="YiXin-加油！">
+  <main class="page-shell home-page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="profile-copy" data-reveal="fade-left">
+        <p class="hero-kicker">个人知识系统 / AI Full-Stack</p>
+        <h1 id="hero-title">YiXin</h1>
+        <p class="role">AI 全栈开发研究生，持续记录后端工程、AI Agent、数据系统和长期成长。</p>
+
+        <ul class="contact-list" aria-label="联系信息">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z"></path>
+              <circle cx="12" cy="10" r="2.5"></circle>
+            </svg>
+            <span>{siteConfig.location}</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="m3 7 9 6 9-6"></path>
+            </svg>
+            <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 22v-4a4.8 4.8 0 0 0-1-3c3 0 6-2 6-5.5a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1-.3-3.3 1.2a11.2 11.2 0 0 0-6 0C7 2.8 6 3.1 6 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4.6 9.5C4.6 13 7.6 15 10.6 15a4.8 4.8 0 0 0-1 3v4"></path>
+              <path d="M9 18c-4.5 2-4.5-2-6-2"></path>
+            </svg>
+            <a href={siteConfig.github} rel="noreferrer" target="_blank">github.com/yixin0724</a>
+          </li>
+        </ul>
+
+        <div class="hero-actions" aria-label="主要操作">
+          <a class="hero-button hero-button-primary" href="/blog">阅读笔记</a>
+          <a class="hero-button" href="/about">关于 YiXin</a>
+        </div>
+      </div>
+
+      <div class="avatar-wrap" aria-label="YiXin 头像" data-reveal="fade-right" style="--reveal-delay: 120ms">
+        <span class="avatar-orbit avatar-orbit-outer" aria-hidden="true"></span>
+        <span class="avatar-orbit avatar-orbit-inner" aria-hidden="true"></span>
+        <div class="avatar-frame">
+          <img src="/images/avatar.png" alt="YiXin 头像" width="320" height="320" />
+        </div>
+        <div class="hero-metrics" aria-label="博客概览">
+          <span>
+            <strong>{posts.length}</strong>
+            文章
+          </span>
+          <span>
+            <strong>{topics.length}</strong>
+            模块
+          </span>
+          <span>
+            <strong>{projects.length}</strong>
+            项目
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="intro-card" aria-label="博客介绍" data-reveal="scale" style="--reveal-delay: 180ms">
+      <p>
+        你好呀，我是 YiXin，一名 AI 全栈开发的研究生，也在持续学习大模型底层相关原理。<br />
+        这个博客主要用于记录我的技术学习、项目实践、开发经验、阅读思考和一些阶段性的个人想法。<br />
+        相比于零散地收藏资料，我更希望通过写作来整理知识、沉淀经验，也为之后的自己留下清晰的成长轨迹。<br />
+        欢迎通过 GitHub 或邮箱与我交流，非常期待与你的交流！
+      </p>
+    </section>
+
+    <section class="content-section" aria-labelledby="latest-posts-title" data-reveal>
+      <div class="section-header">
+        <div>
+          <h2 id="latest-posts-title">最新文章</h2>
+          <p>最近更新的技术记录、项目复盘和阶段性思考。</p>
+        </div>
+        <a class="section-link" href="/blog">查看全部文章</a>
+      </div>
+
+      <div class="post-grid">
+        {
+          latestPosts.slice(0, 4).map((post) => (
+            <PostCard post={post} />
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="content-section" aria-labelledby="topics-title" data-reveal>
+      <div class="section-header">
+        <div>
+          <h2 id="topics-title">写作模块</h2>
+          <p>按技术方向和实践场景浏览内容。</p>
+        </div>
+      </div>
+
+      <div class="topic-grid">
+        {
+          topics.map((topic) => (
+            <a class="topic-card" href={topic.href}>
+              <span class="topic-icon" aria-hidden="true"></span>
+              <h3>{topic.label}</h3>
+              <p>{topic.description}</p>
+              <span class="topic-count">{topic.count}</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="content-section" aria-labelledby="projects-title" data-reveal>
+      <div class="section-header">
+        <div>
+          <h2 id="projects-title">项目</h2>
+          <p>整理后端、AI Agent 和个人工具方向的项目与实验。</p>
+        </div>
+        <a class="section-link" href="/projects">查看全部项目</a>
+      </div>
+
+      <div class="project-grid">
+        {
+          projects.map((project) => (
+            <article class="project-card">
+              <div class="project-heading">
+                <h3>{project.name}</h3>
+                <span class="status-badge">{project.status}</span>
+              </div>
+              <p>{project.description}</p>
+              <div class="tag-list">
+                {project.tech.map((tech) => (
+                  <span>{tech}</span>
+                ))}
+              </div>
+              <div class="project-actions">
+                {project.github && (
+                  <a href={project.github} target="_blank" rel="noreferrer">
+                    GitHub
+                  </a>
+                )}
+                <a href={project.details}>详情</a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+  </main>
 </Layout>
+
+<style>
+  .home-page {
+    padding-top: 42px;
+  }
+
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+    align-items: center;
+    gap: clamp(42px, 8vw, 92px);
+    min-height: min(62vh, 520px);
+    padding: clamp(22px, 4vw, 44px) 0 20px;
+  }
+
+  .hero::before {
+    position: absolute;
+    inset: 10% 36% auto -4%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+    content: "";
+  }
+
+  .profile-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    margin: 0 0 18px;
+    border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+    border-radius: 999px;
+    padding: 0 13px;
+    color: var(--accent-strong);
+    background: color-mix(in srgb, var(--glass-bg) 78%, transparent);
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 8%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 760;
+    letter-spacing: 0;
+    backdrop-filter: blur(14px);
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-size: clamp(4.1rem, 9vw, 7.4rem);
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: 0;
+    background: linear-gradient(110deg, var(--text) 14%, var(--accent-strong) 48%, var(--accent) 76%, var(--accent-hot) 112%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .role {
+    max-width: 620px;
+    margin: 18px 0 26px;
+    color: var(--muted);
+    font-size: clamp(1.08rem, 2vw, 1.32rem);
+    line-height: 1.75;
+  }
+
+  .contact-list {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    color: var(--muted);
+    list-style: none;
+  }
+
+  .contact-list li {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 12px;
+    transition:
+      color var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .contact-list li:hover {
+    color: var(--text);
+    transform: translateX(2px);
+  }
+
+  .contact-list a,
+  .contact-list span {
+    overflow-wrap: anywhere;
+  }
+
+  .contact-list a {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+  }
+
+  .contact-list a:hover {
+    color: var(--text);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+
+  .hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+    border-radius: 999px;
+    padding: 0 18px;
+    color: var(--text);
+    background: var(--glass-bg);
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--accent) 8%, transparent);
+    font-size: 0.92rem;
+    font-weight: 720;
+    transition:
+      border-color var(--duration-fast) ease,
+      box-shadow var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-button-primary {
+    border-color: color-mix(in srgb, var(--accent) 56%, var(--line));
+    color: white;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  }
+
+  .hero-button:hover {
+    border-color: var(--accent);
+    box-shadow: 0 18px 40px color-mix(in srgb, var(--accent) 16%, transparent);
+    transform: translateY(-2px);
+  }
+
+  .avatar-wrap {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 352px);
+    padding: 20px;
+    animation: avatar-float 7s var(--ease-out) infinite;
+  }
+
+  .avatar-wrap::before,
+  .avatar-wrap::after {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+  }
+
+  .avatar-wrap::before {
+    inset: -18px 2px 34px;
+    border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+    border-radius: 34px;
+    background:
+      linear-gradient(140deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 56%),
+      linear-gradient(320deg, color-mix(in srgb, var(--accent-hot) 8%, transparent), transparent 52%),
+      color-mix(in srgb, var(--glass-bg) 54%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.46),
+      0 30px 90px color-mix(in srgb, var(--accent) 18%, transparent);
+    backdrop-filter: blur(18px);
+  }
+
+  .avatar-wrap::after {
+    inset: 20px 20px 84px;
+    border-radius: 24px;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 42%, transparent),
+      0 0 58px color-mix(in srgb, var(--accent) 34%, transparent);
+  }
+
+  .avatar-orbit {
+    position: absolute;
+    z-index: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .avatar-orbit-outer {
+    inset: -18px -10px 42px;
+    transform: rotate(-10deg);
+  }
+
+  .avatar-orbit-inner {
+    inset: 24px 12px 92px;
+    border-color: color-mix(in srgb, var(--accent-hot) 18%, transparent);
+    transform: rotate(14deg);
+  }
+
+  .avatar-frame {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 0.82;
+    border: 1px solid color-mix(in srgb, var(--accent) 54%, white);
+    border-radius: 24px;
+    box-shadow: var(--avatar-shadow);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .avatar-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-metrics {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: -20px auto 0;
+    width: min(100%, 310px);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px;
+    background: color-mix(in srgb, var(--glass-bg) 88%, transparent);
+    box-shadow: 0 18px 46px color-mix(in srgb, var(--accent) 12%, transparent);
+    backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+  }
+
+  .hero-metrics span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .hero-metrics strong {
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .intro-card {
+    position: relative;
+    margin-top: 34px;
+    border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+    border-radius: 8px;
+    padding: 26px 30px 26px 40px;
+    color: var(--muted);
+    background:
+      linear-gradient(115deg, color-mix(in srgb, var(--accent) 13%, transparent), transparent 68%),
+      linear-gradient(290deg, color-mix(in srgb, var(--accent-hot) 7%, transparent), transparent 58%),
+      color-mix(in srgb, var(--card-bg) 92%, transparent);
+    box-shadow: var(--card-shadow-hover);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.72)) saturate(130%);
+    overflow: hidden;
+  }
+
+  .intro-card::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+    transform: translateX(-120%);
+    animation: intro-sheen 9s var(--ease-out) infinite;
+    content: "";
+    pointer-events: none;
+  }
+
+  .intro-card::before {
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 18px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+    content: "";
+  }
+
+  .intro-card p {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .content-section {
+    margin-top: 86px;
+  }
+
+  .home-page .post-grid {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: stretch;
+  }
+
+  .home-page .post-grid :global(.post-card:first-child) {
+    min-height: 324px;
+  }
+
+  .home-page .post-grid :global(.post-card:first-child h3) {
+    font-size: clamp(1.42rem, 2.4vw, 1.95rem);
+  }
+
+  @keyframes intro-sheen {
+    0%,
+    72% {
+      transform: translateX(-120%);
+    }
+
+    100% {
+      transform: translateX(120%);
+    }
+  }
+
+  @keyframes avatar-float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+
+    50% {
+      translate: 0 -8px;
+    }
+  }
+
+  @media (max-width: 940px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 30px;
+      text-align: center;
+    }
+
+    .avatar-wrap {
+      grid-row: 1;
+      width: min(78vw, 310px);
+    }
+
+    .contact-list {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .content-section {
+      margin-top: 64px;
+    }
+
+    .home-page .post-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .home-page {
+      padding-top: 28px;
+    }
+
+    .hero {
+      gap: 18px;
+      min-height: auto;
+      padding-top: 14px;
+    }
+
+    .hero-kicker {
+      margin-bottom: 14px;
+      font-size: 0.72rem;
+    }
+
+    .hero h1 {
+      font-size: 3.35rem;
+    }
+
+    .role {
+      margin: 14px 0 20px;
+      font-size: 1rem;
+    }
+
+    .contact-list {
+      gap: 10px;
+    }
+
+    .hero-actions {
+      justify-content: center;
+      margin-top: 22px;
+    }
+
+    .hero-button {
+      flex: 1 1 136px;
+      min-height: 42px;
+    }
+
+    .avatar-wrap {
+      width: min(68vw, 246px);
+      padding: 12px;
+    }
+
+    .avatar-wrap::before {
+      inset: -8px 0 28px;
+    }
+
+    .avatar-wrap::after {
+      inset: 14px 14px 66px;
+    }
+
+    .hero-metrics {
+      width: min(100%, 238px);
+      margin-top: -14px;
+      padding: 8px;
+    }
+
+    .intro-card {
+      margin-top: 24px;
+      padding: 22px 20px 22px 32px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .avatar-wrap {
+      animation: none;
+    }
+
+    .intro-card::after {
+      animation: none;
+    }
+  }
+</style>

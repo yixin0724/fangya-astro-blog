@@ -1,0 +1,129 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { getCollection } from "astro:content";
+import { filterPublishedPosts, getTagCounts } from "../../lib/blog";
+
+const tags = getTagCounts(filterPublishedPosts(await getCollection("blog")));
+const topTag = tags[0];
+---
+
+<Layout title="标签索引 | YiXin-加油！" description="用技术关键词快速定位文章。">
+  <main class="page-shell">
+    <PageHeader eyebrow="关键词" title="标签索引" description="用技术关键词快速定位文章，适合从问题、工具或技术栈切入阅读。" />
+
+    <section class="tag-stats" aria-label="标签统计">
+      <div class="plain-card">
+        <span>标签总数</span>
+        <strong>{tags.length}</strong>
+      </div>
+      <div class="plain-card">
+        <span>最高频标签</span>
+        <strong>{topTag ? `#${topTag.name}` : "-"}</strong>
+      </div>
+    </section>
+
+    <section class="tag-cloud" aria-label="标签云">
+      {
+        tags.map((tag) => (
+          <a class="tag-pill" href={tag.href}>
+            <span>#{tag.name}</span>
+            <strong>{tag.count} 篇</strong>
+          </a>
+        ))
+      }
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .tag-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .tag-stats span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .tag-stats strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.24rem;
+  }
+
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .tag-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    padding: 0 16px;
+    color: var(--muted);
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.45)) saturate(120%);
+    transition:
+      border-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .tag-pill::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 54%);
+    opacity: 0;
+    transition: opacity 160ms ease;
+    content: "";
+    pointer-events: none;
+  }
+
+  .tag-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .tag-pill:hover::before {
+    opacity: 1;
+  }
+
+  .tag-pill span,
+  .tag-pill strong {
+    position: relative;
+    z-index: 1;
+  }
+
+  .tag-pill strong {
+    display: inline-grid;
+    place-items: center;
+    min-width: 42px;
+    min-height: 26px;
+    border-radius: 999px;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 560px) {
+    .tag-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

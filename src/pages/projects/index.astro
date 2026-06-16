@@ -1,0 +1,42 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/common/PageHeader.astro";
+import { projects } from "../../data/mock";
+---
+
+<Layout title="项目 | YiXin-加油！" description="整理后端、AI Agent 和个人工具方向的项目记录。">
+  <main class="page-shell">
+    <PageHeader
+      eyebrow="项目档案"
+      title="项目"
+      description="整理后端、AI Agent 和个人工具方向的项目记录，每个项目都提供 README 风格的详情说明。"
+    />
+
+    <section class="project-grid" aria-label="项目列表">
+      {
+        projects.map((project) => (
+          <article class="project-card">
+            <div class="project-heading">
+              <h3>{project.name}</h3>
+              <span class="status-badge">{project.status}</span>
+            </div>
+            <p>{project.description}</p>
+            <div class="tag-list">
+              {project.tech.map((tech) => (
+                <span>{tech}</span>
+              ))}
+            </div>
+            <div class="project-actions">
+              {project.github && (
+                <a href={project.github} target="_blank" rel="noreferrer">
+                  GitHub
+                </a>
+              )}
+              <a href={project.details}>详情</a>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+</Layout>
