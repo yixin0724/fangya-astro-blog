@@ -8,7 +8,7 @@ tags:
   - "Java"
   - "图像识别"
   - "AI 应用"
-categories: "AI Agent"
+categories: "AI"
 description: "在暑假期间老师布置的任务，也算是粗略完成了。"
 draft: false
 ---

@@ -5,13 +5,13 @@ import { favorites } from "../../data/mock";
 ---
 
 <Layout
-  title="收藏 | YiXin-加油！"
-  description="整理常用工具、文章、书籍和学习资源。"
+  title="所爱 | YiXin-加油！"
+  description="记录我热爱的事情，以及那些长期吸引我的方向。"
 >
   <main class="page-shell">
-    <PageHeader eyebrow="资源清单" title="收藏" description="整理常用工具、文章、书籍和学习资源，方便后续反复查阅。" />
+    <PageHeader eyebrow="热爱清单" title="所爱" description="不只是资源链接，而是那些真正让我投入时间、保持好奇和持续上头的事情。" />
 
-    <section class="card-grid" aria-label="收藏资源分组">
+    <section class="card-grid" aria-label="所爱内容分组">
       {
         favorites.map((group) => (
           <article class="resource-card">
@@ -20,9 +20,7 @@ import { favorites } from "../../data/mock";
             <ul class="resource-list">
               {group.items.map((item) => (
                 <li>
-                  <a href={item.href} target="_blank" rel="noreferrer">
-                    {item.name}
-                  </a>
+                  <strong>{item.name}</strong>
                   <span>{item.description}</span>
                 </li>
               ))}
@@ -48,9 +46,8 @@ import { favorites } from "../../data/mock";
     gap: 4px;
   }
 
-  .resource-list a {
-    font-weight: 680;
-    transition: color 160ms ease;
+  .resource-list strong {
+    font-weight: 760;
   }
 
   .resource-list span {

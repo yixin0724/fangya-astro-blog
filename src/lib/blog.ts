@@ -10,10 +10,10 @@ export const writingTopics = [
     description: "围绕 Java、Spring Boot、API、数据库和中间件的后端实践记录。",
   },
   {
-    name: "AI Agent",
-    label: "AI Agent",
-    href: "/categories/ai-agent",
-    description: "记录 LLM 应用、OCR、工具调用、RAG 和 Agent 实验。",
+    name: "AI",
+    label: "AI",
+    href: "/categories/ai",
+    description: "记录大模型、深度学习、OCR、RAG 和 Agent 实验。",
   },
   {
     name: "Programming",

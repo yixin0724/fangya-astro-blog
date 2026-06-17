@@ -1,84 +1,54 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PageHeader from "../../components/common/PageHeader.astro";
-import { focusAreas, techStack, timeline } from "../../data/mock";
 import { siteConfig } from "../../site.config";
 ---
 
 <Layout title="关于 | YiXin-加油！" description="关于我、技术兴趣和这个博客。">
   <main class="page-shell">
-    <PageHeader eyebrow="个人介绍" title="关于" description="关于我、技术兴趣和这个博客，也记录当前的学习方向。" />
+    <PageHeader eyebrow="个人介绍" title="关于" description="一些关于我、学习状态、科研方向和联系方式的信息。" />
 
     <section class="about-stack">
       <article class="plain-card about-card">
         <h2>关于我</h2>
         <p>
-          你好，我是 YiXin，目前关注后端工程、AI Agent 和长期技术写作。我会用这个博客记录日常思考、
-          技术笔记、项目实践和学习轨迹，让知识尽量沉淀成可以反复回看的内容。
+          你好，我是 YiXin，一名 2024 届软件工程专业硕士，目前在长理读研中，也是国防科大的联合培养生。
+          现在主要研究 HPC 工作流调度相关优化，希望能在科研问题和工程实践之间找到稳定连接点。
         </p>
+
+        <div class="about-lines" aria-label="个人信息">
+          <div class="about-line">
+            <strong>当前状态</strong>
+            <span>长理读研中，国防科大联合培养生。</span>
+          </div>
+          <div class="about-line">
+            <strong>科研方向</strong>
+            <span>HPC 工作流调度相关优化。</span>
+          </div>
+          <div class="about-line">
+            <strong>主要学习</strong>
+            <span>后端开发为主，不过 Vibe Coding 的时代，应该基本都在向全栈发展吧。</span>
+          </div>
+          <div class="about-line">
+            <strong>最喜欢</strong>
+            <span>AI、大模型和深度学习。应该没有人不喜欢吧。</span>
+          </div>
+          <div class="about-line">
+            <strong>游戏状态</strong>
+            <span>LOL 爱好者，郊区大师的小菜 AD 和上单。</span>
+          </div>
+          <div class="about-line">
+            <strong>长期状态</strong>
+            <span>对新技术有强烈好奇心，沉迷学习技术无法自拔。学习使我快乐！(/doge)</span>
+          </div>
+        </div>
       </article>
-
-      <section class="about-section" aria-labelledby="focus-title">
-        <div class="section-header">
-          <div>
-            <h2 id="focus-title">关注方向</h2>
-            <p>当前正在学习、实践和持续写作的方向。</p>
-          </div>
-        </div>
-        <div class="three-grid">
-          {
-            focusAreas.map((area) => (
-              <article class="plain-card focus-card">
-                <h3>{area}</h3>
-              </article>
-            ))
-          }
-        </div>
-      </section>
-
-      <section class="about-section" aria-labelledby="stack-title">
-        <div class="section-header">
-          <div>
-            <h2 id="stack-title">技术栈</h2>
-            <p>日常项目中使用或正在学习的工具与技术。</p>
-          </div>
-        </div>
-        <div class="stack-list">
-          {
-            techStack.map((item) => (
-              <div class="stack-row">
-                <strong>{item.label}</strong>
-                <span>{item.value}</span>
-              </div>
-            ))
-          }
-        </div>
-      </section>
-
-      <section class="about-section" aria-labelledby="timeline-title">
-        <div class="section-header">
-          <div>
-            <h2 id="timeline-title">时间线</h2>
-            <p>保留学习和成长过程中的轻量记录。</p>
-          </div>
-        </div>
-        <div class="about-timeline">
-          {
-            timeline.map((item) => (
-              <div class="timeline-row">
-                <strong>{item.year}</strong>
-                <p>{item.text}</p>
-              </div>
-            ))
-          }
-        </div>
-      </section>
 
       <section class="about-section" aria-labelledby="contact-title">
         <div class="section-header">
           <div>
             <h2 id="contact-title">联系</h2>
-            <p>位置、邮箱和 GitHub 与首页保持一致。</p>
+            <p>欢迎通过邮箱或 GitHub 交流技术、科研、AI Agent 或 LOL。</p>
           </div>
         </div>
         <div class="card-grid">
@@ -113,18 +83,13 @@ import { siteConfig } from "../../site.config";
     font-size: 1.02rem;
   }
 
-  .focus-card {
-    min-height: 110px;
-  }
-
-  .stack-list,
-  .about-timeline {
+  .about-lines {
     display: grid;
     gap: 12px;
+    margin-top: 28px;
   }
 
-  .stack-row,
-  .timeline-row {
+  .about-line {
     position: relative;
     display: grid;
     grid-template-columns: 160px minmax(0, 1fr);
@@ -142,8 +107,7 @@ import { siteConfig } from "../../site.config";
       transform var(--duration-fast) var(--ease-out);
   }
 
-  .stack-row::before,
-  .timeline-row::before {
+  .about-line::before {
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 52%);
@@ -153,36 +117,30 @@ import { siteConfig } from "../../site.config";
     pointer-events: none;
   }
 
-  .stack-row:hover,
-  .timeline-row:hover {
+  .about-line:hover {
     border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
     box-shadow: var(--card-shadow-hover);
     transform: translateY(-2px);
   }
 
-  .stack-row:hover::before,
-  .timeline-row:hover::before {
+  .about-line:hover::before {
     opacity: 1;
   }
 
-  .stack-row strong,
-  .stack-row span,
-  .timeline-row strong,
-  .timeline-row p {
+  .about-line strong,
+  .about-line span {
     position: relative;
     z-index: 1;
   }
 
-  .stack-row span,
-  .timeline-row p {
+  .about-line span {
     margin: 0;
     color: var(--muted);
     line-height: 1.65;
   }
 
   @media (max-width: 560px) {
-    .stack-row,
-    .timeline-row {
+    .about-line {
       grid-template-columns: 1fr;
       gap: 8px;
     }
